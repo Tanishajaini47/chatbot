@@ -1,0 +1,29 @@
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, Text
+from datetime import datetime
+import asyncio
+
+DATABASE_URL = "sqlite+aiosqlite:///./chatbot.db"
+
+engine = create_async_engine(DATABASE_URL, echo=True)
+SessionLocal = sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+Base = declarative_base()
+
+class UserInteraction(Base):
+    __tablename__ = "user_interactions"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, index=True)
+    message = Column(Text)
+    response = Column(Text)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+async def log_interaction(user_id: str, message: str, response: str):
+    async with SessionLocal() as session:
+        interaction = UserInteraction(user_id=user_id, message=message, response=response)
+        session.add(interaction)
+        await session.commit() 
