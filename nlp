@@ -1,0 +1,19 @@
+import spacy
+from typing import Dict
+
+# Load spaCy English model
+nlp = spacy.load("en_core_web_sm")
+
+# Example FAQ data (can be extended)
+FAQS = {
+    "what is your name": "I am your support assistant chatbot.",
+    "how can I reset my password": "To reset your password, click on 'Forgot Password' at the login page.",
+    "what are your working hours": "Our support is available 24/7.",
+}
+
+def get_faq_response(message: str) -> str:
+    doc = nlp(message.lower())
+    for question, answer in FAQS.items():
+        if question in message.lower():
+            return answer
+    return "I'm sorry, I don't have an answer for that. Can you please rephrase?" 
