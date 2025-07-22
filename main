@@ -1,0 +1,29 @@
+from fastapi import FastAPI, Request
+from pydantic import BaseModel
+from typing import List
+from db import init_db, log_interaction
+from nlp import get_faq_response
+import asyncio
+
+app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+    await init_db()
+
+class ChatRequest(BaseModel):
+    user_id: str
+    message: str
+
+class ChatResponse(BaseModel):
+    response: str
+
+@app.get("/")
+def read_root():
+    return {"message": "Chatbot API is running."}
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(chat: ChatRequest):
+    response = get_faq_response(chat.message)
+    await log_interaction(chat.user_id, chat.message, response)
+    return {"response": response}
